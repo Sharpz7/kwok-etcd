@@ -1,6 +1,9 @@
 version: 1
 
 scripts:
+  setup: |
+    sudo apt install gettext
+
   start: |
     docker run --rm -d -p 8080:8080 --name kwok registry.k8s.io/kwok/cluster:v0.4.0-k8s.v1.28.0
 
@@ -11,13 +14,33 @@ scripts:
     docker exec -it kwok kwokctl $_ARG1 $_ARG2 $_ARG3 $_ARG4 $_ARG5 $_ARG6
 
   kubectl: |
-    KUBECONFIG=./.kube/config kubectl $_ARG1 $_ARG2 $_ARG3 $_ARG4 $_ARG5 $_ARG6
+    sharpdev kwokctl kubectl $_ARG1 $_ARG2 $_ARG3 $_ARG4 $_ARG5 $_ARG6
 
   etcdctl: |
-    docker exec -it kwok kwokctl etcdctl $_ARG1 $_ARG2 $_ARG3 $_ARG4 $_ARG5 $_ARG6
+    sharpdev kwokctl etcdctl $_ARG1 $_ARG2 $_ARG3 $_ARG4 $_ARG5 $_ARG6
 
   monitor: |
     sharpdev etcdctl --write-out=table --endpoints=$ENDPOINTS endpoint status
 
   node: |
-    sharpdev kubectl apply -f ./node.yaml
+    export NAME=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 10 | head -n 1)
+    # Ensure the name starts and ends with an alphanumeric character
+    export NAME="n${NAME}1"
+
+    envsubst < ./node.yaml | sharpdev kubectl apply -f -
+
+  pod: |
+    export NAME=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 10 | head -n 1)
+    # Ensure the name starts and ends with an alphanumeric character
+    export NAME="n${NAME}1"
+
+    envsubst < ./pod.yaml | sharpdev kubectl apply -f -
+
+  cluster: |
+    sharpdev kwokctl create cluster --name=$_ARG1
+
+  get: |
+    sharpdev kubectl get $_ARG1
+
+  context: |
+    sharpdev kubectl config use-context $_ARG1

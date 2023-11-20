@@ -8,12 +8,12 @@ metadata:
     beta.kubernetes.io/arch: amd64
     beta.kubernetes.io/os: linux
     kubernetes.io/arch: amd64
-    kubernetes.io/hostname: kwok-node-0
+    kubernetes.io/hostname: ${NAME}
     kubernetes.io/os: linux
     kubernetes.io/role: agent
     node-role.kubernetes.io/agent: ""
     type: kwok
-  name: kwok-node-0
+  name: ${NAME}
 spec:
   taints: # Avoid scheduling actual running pods to fake Node
   - effect: NoSchedule
