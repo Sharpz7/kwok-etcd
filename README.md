@@ -51,18 +51,6 @@ Create Nodes
 export NAME=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 10 | head -n 1)
 export NAME="n${NAME}1"
 
-# Use a for loop to repeat for NAME2 to NAME8
-i=2
-while [ $i -le 8 ]; do
-    # Generate a new random string
-    RAND_STR=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 10 | head -n 1)
-    # Ensure the name starts and ends with an alphanumeric character
-    RAND_STR="n${RAND_STR}1"
-    # Use eval for dynamic variable creation
-    eval "export NAME${i}='${RAND_STR}'"
-    i=$((i + 1))
-done
-
 envsubst < ./node.yaml | kubectl --kubeconfig=./.kube/config apply -f -
 ```
 

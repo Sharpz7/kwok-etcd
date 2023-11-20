@@ -65,31 +65,31 @@ scripts:
       sleep 0.01
     done
 
-  node: |
-    # Generating the first name
-    export NAME=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 10 | head -n 1)
-    export NAME="n${NAME}1"
+  create: |
+    # Initialize a temporary file
+    TMP_FILE=$(mktemp)
 
     # Use a for loop to repeat for NAME2 to NAME8
-    i=2
-    while [ $i -le 8 ]; do
-      # Generate a new random string
-      RAND_STR=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 10 | head -n 1)
-      # Ensure the name starts and ends with an alphanumeric character
-      RAND_STR="n${RAND_STR}1"
-      # Use eval for dynamic variable creation
-      eval "export NAME${i}='${RAND_STR}'"
+    i=1
+    while [ $i -le 20 ]; do
+      # Generating the first name
+      NAME=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 10 | head -n 1)
+      export NAME="n${NAME}1"
+
+      # Substitute and append to temporary file
+      envsubst < ./$_ARG1.yaml >> "$TMP_FILE"
+
+      echo "" >> "$TMP_FILE"
+      echo "---" >> "$TMP_FILE"
+
       i=$((i + 1))
     done
 
-    envsubst < ./node.yaml | sharpdev kubectl apply -f -
+    # Apply all configurations at once
+    sharpdev kubectl apply -f "$TMP_FILE"
 
-  pod: |
-    export NAME=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 10 | head -n 1)
-    # Ensure the name starts and ends with an alphanumeric character
-    export NAME="n${NAME}1"
-
-    envsubst < ./pod.yaml | sharpdev kubectl apply -f -
+    # Clean up temporary file
+    rm "$TMP_FILE"
 
   cluster: |
     sharpdev kwokctl create cluster --v DEBUG --name=$_ARG1
@@ -102,14 +102,14 @@ scripts:
 
   chaos: |
     i=1
-    while [ $i -le 5 ]; do
-      sharpdev node
+    while [ $i -le 10 ]; do
+      sharpdev create node
       i=$((i + 1))
     done
 
     i=1
-    while [ $i -le 100 ]; do
-      sharpdev pod
+    while [ $i -le 10 ]; do
+      sharpdev create pod
       i=$((i + 1))
     done
 
