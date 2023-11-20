@@ -1,0 +1,17 @@
+version: 1
+
+scripts:
+  start: |
+    docker run --rm -d -p 8080:8080 --name kwok registry.k8s.io/kwok/cluster:v0.4.0-k8s.v1.28.0
+
+  stop: |
+    docker stop kwok
+
+  kwokctl: |
+    docker exec -it kwok kwokctl $_ARG1 $_ARG2 $_ARG3 $_ARG4 $_ARG5 $_ARG6
+
+  kubectl: |
+    KUBECONFIG=./.kube/config kubectl $_ARG1 $_ARG2 $_ARG3 $_ARG4 $_ARG5 $_ARG6
+
+  monitor: |
+    docker exec -it kwok kwokctl etcdctl --write-out=table --endpoints=$ENDPOINTS endpoint status
