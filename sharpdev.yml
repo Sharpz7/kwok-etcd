@@ -13,5 +13,11 @@ scripts:
   kubectl: |
     KUBECONFIG=./.kube/config kubectl $_ARG1 $_ARG2 $_ARG3 $_ARG4 $_ARG5 $_ARG6
 
+  etcdctl: |
+    docker exec -it kwok kwokctl etcdctl $_ARG1 $_ARG2 $_ARG3 $_ARG4 $_ARG5 $_ARG6
+
   monitor: |
-    docker exec -it kwok kwokctl etcdctl --write-out=table --endpoints=$ENDPOINTS endpoint status
+    sharpdev etcdctl --write-out=table --endpoints=$ENDPOINTS endpoint status
+
+  node: |
+    sharpdev kubectl apply -f ./node.yaml
