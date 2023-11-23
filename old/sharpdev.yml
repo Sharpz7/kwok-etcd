@@ -1,0 +1,120 @@
+version: 1
+
+scripts:
+  setup: |
+    sudo apt install gettext jq
+    go install sigs.k8s.io/kind@latest
+
+
+  kind: |
+    kind create cluster --name kwok --config ./kind.yaml
+
+  start: |
+    docker run --rm -d -p 8080:8080 --name kwok registry.k8s.io/kwok/cluster:v0.4.0-k8s.v1.28.0
+
+  stop: |
+    docker stop kwok
+
+  exec: |
+    docker exec -it kwok $_ARG1 $_ARG2 $_ARG3 $_ARG4 $_ARG5 $_ARG6 $_ARG7 $_ARG8 $_ARG9
+
+  bash: |
+    sharpdev exec sh
+
+  get-config: |
+    mkdir -p ./.kube
+    sharpdev kwokctl kubectl config view --extenal > ./.kube/config
+
+    sharpdev exec cat /root/.kwok/clusters/kwok/pki/admin.crt > ./.kube/admin.crt
+    sharpdev exec cat /root/.kwok/clusters/kwok/pki/admin.key > ./.kube/admin.key
+    sharpdev exec cat /root/.kwok/clusters/kwok/pki/ca.crt > ./.kube/ca.crt
+
+    # replace the path to the admin key in the config file
+    sed -i 's/\/root\/.kwok\/clusters\/kwok\/pki\/admin.key/\.\/admin\.key/g' ./.kube/config
+    # and the path to the admin cert
+    sed -i 's/\/root\/.kwok\/clusters\/kwok\/pki\/admin.crt/\.\/admin\.crt/g' ./.kube/config
+    # and the path to the ca cert
+    sed -i 's/\/root\/.kwok\/clusters\/kwok\/pki\/ca.crt/\.\/ca\.crt/g' ./.kube/config
+
+    sharpdev kubectl config use-context kwok-kwok
+
+  kwokctl: |
+    sharpdev exec kwokctl $_ARG1 $_ARG2 $_ARG3 $_ARG4 $_ARG5 $_ARG6
+
+  kubectl: |
+    kubectl --kubeconfig=./.kube/config $_ARG1 $_ARG2 $_ARG3 $_ARG4 $_ARG5 $_ARG6
+
+  etcdctl: |
+    sharpdev kwokctl etcdctl $_ARG1 $_ARG2 $_ARG3 $_ARG4 $_ARG5 $_ARG6
+
+  monitor: |
+    # Initialize a variable to store the previous output line count
+    PREV_LINE_COUNT=0
+
+    while true; do
+      # Capture the output of the etcdctl command
+      OUTPUT=$(sharpdev etcdctl --write-out=table --endpoints=$ENDPOINTS endpoint status)
+
+      # Move the cursor up by the number of lines in the previous output
+      if [ $PREV_LINE_COUNT -gt 0 ]; then
+        tput cuu $PREV_LINE_COUNT
+      fi
+
+      # Print the new output
+      echo "$OUTPUT"
+
+      # Update the line count for the next iteration
+      PREV_LINE_COUNT=$(echo "$OUTPUT" | wc -l)
+
+      # Wait for a second before the next iteration
+      sleep 0.01
+    done
+
+  create: |
+    # Initialize a temporary file
+    TMP_FILE=$(mktemp)
+
+    # Use a for loop to repeat for NAME2 to NAME8
+    i=1
+    while [ $i -le 20 ]; do
+      # Generating the first name
+      NAME=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 10 | head -n 1)
+      export NAME="n${NAME}1"
+
+      # Substitute and append to temporary file
+      envsubst < ./$_ARG1.yaml >> "$TMP_FILE"
+
+      echo "" >> "$TMP_FILE"
+      echo "---" >> "$TMP_FILE"
+
+      i=$((i + 1))
+    done
+
+    # Apply all configurations at once
+    sharpdev kubectl apply -f "$TMP_FILE"
+
+    # Clean up temporary file
+    rm "$TMP_FILE"
+
+  cluster: |
+    sharpdev kwokctl create cluster --v DEBUG --name=$_ARG1
+
+  get: |
+    sharpdev kubectl get $_ARG1 $_ARG2
+
+  context: |
+    sharpdev kubectl config use-context $_ARG1
+
+  chaos: |
+    i=1
+    while [ $i -le 10 ]; do
+      sharpdev create node
+      i=$((i + 1))
+    done
+
+    i=1
+    while [ $i -le 10 ]; do
+      sharpdev create pod
+      i=$((i + 1))
+    done
+
