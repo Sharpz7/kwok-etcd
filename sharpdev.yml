@@ -2,7 +2,7 @@ version: 1
 
 scripts:
   setup: |
-    sudo apt install gettext
+    sudo apt install gettext etcd-client
     go install sigs.k8s.io/kind@latest
 
   kind: |
@@ -12,11 +12,14 @@ scripts:
     mkdir -p ./.kube
     kind get kubeconfig --name kwok > ./.kube/config
 
+    sharpdev install
+    sharpdev kubectl apply -f ./configs/etcd.yaml
+
   deletekind: |
     kind delete cluster --name kwok
 
   kubectl: |
-    kubectl --kubeconfig=./.kube/config $_ARG1 $_ARG2 $_ARG3 $_ARG4 $_ARG5 $_ARG6
+    kubectl --kubeconfig=./.kube/config $_ARG1 $_ARG2 $_ARG3 $_ARG4 $_ARG5 $_ARG6 $_ARG7 $_ARG8 $_ARG9
 
   install: |
     KWOK_REPO=kubernetes-sigs/kwok
@@ -70,4 +73,26 @@ scripts:
       i=$((i + 1))
     done
 
+  monitor: |
+    # Initialize a variable to store the previous output line count
+    PREV_LINE_COUNT=0
+
+    while true; do
+      # Capture the output of the etcdctl command
+      OUTPUT=$(etcdctl --write-out=table endpoint status)
+
+      # Move the cursor up by the number of lines in the previous output
+      if [ $PREV_LINE_COUNT -gt 0 ]; then
+        tput cuu $PREV_LINE_COUNT
+      fi
+
+      # Print the new output
+      echo "$OUTPUT"
+
+      # Update the line count for the next iteration
+      PREV_LINE_COUNT=$(echo "$OUTPUT" | wc -l)
+
+      # Wait for a second before the next iteration
+      sleep 0.01
+    done
 
