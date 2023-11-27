@@ -1,3 +1,4 @@
+# https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
@@ -7,5 +8,5 @@ nodes:
     kind: ClusterConfiguration
     apiServer:
       extraArgs:
-        "kube-api-qps": "1000"
-        "kube-api-burst": "2000"
+        "max-requests-inflight": "10000"
+        "max-mutating-requests-inflight": "10000"

@@ -6,7 +6,7 @@ scripts:
     go install sigs.k8s.io/kind@latest
 
   kind: |
-    kind create cluster --name kwok
+    kind create cluster --name kwok --config ./configs/kind.yaml
 
     # get configs out
     mkdir -p ./.kube
