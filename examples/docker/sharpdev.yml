@@ -82,7 +82,7 @@ scripts:
       export NAME="n${NAME}1"
 
       # Substitute and append to temporary file
-      envsubst < ./$_ARG1.yaml >> "$TMP_FILE"
+      envsubst < ./configs/$_ARG1.yaml >> "$TMP_FILE"
 
       echo "" >> "$TMP_FILE"
       echo "---" >> "$TMP_FILE"

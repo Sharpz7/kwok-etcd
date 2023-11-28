@@ -1,0 +1,76 @@
+version: 1
+
+scripts:
+  setup: |
+    sudo apt install gettext etcd-client
+    go install sigs.k8s.io/kind@latest
+
+  kind: |
+    kind create cluster --name kwok --config ./configs/kind.yaml
+
+    # get configs out
+    mkdir -p ./.kube
+    kind get kubeconfig --name kwok > ./.kube/config
+
+    sharpdev install
+
+  deletekind: |
+    kind delete cluster --name kwok
+
+  kubectl: |
+    kubectl --kubeconfig=./.kube/config $_ARG1 $_ARG2 $_ARG3 $_ARG4 $_ARG5 $_ARG6 $_ARG7 $_ARG8 $_ARG9
+
+  install: |
+    KWOK_REPO=kubernetes-sigs/kwok
+    KWOK_LATEST_RELEASE=$(curl "https://api.github.com/repos/${KWOK_REPO}/releases/latest" | jq -r '.tag_name')
+
+    sharpdev kubectl apply -f "https://github.com/${KWOK_REPO}/releases/download/${KWOK_LATEST_RELEASE}/kwok.yaml"
+    sharpdev kubectl apply -f "https://github.com/${KWOK_REPO}/releases/download/${KWOK_LATEST_RELEASE}/stage-fast.yaml"
+
+  create: |
+    # Initialize a temporary file
+    TMP_FILE=$(mktemp)
+
+    # Use a for loop to repeat for NAME2 to NAME8
+    i=1
+    while [ $i -le 20 ]; do
+      # Generating the first name
+      NAME=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 10 | head -n 1)
+      export NAME="n${NAME}1"
+
+      # Substitute and append to temporary file
+      envsubst < ./configs/$_ARG1.yaml >> "$TMP_FILE"
+
+      echo "" >> "$TMP_FILE"
+      echo "---" >> "$TMP_FILE"
+
+      i=$((i + 1))
+    done
+
+    # Apply all configurations at once
+    sharpdev kubectl apply -f "$TMP_FILE"
+
+    # Clean up temporary file
+    rm "$TMP_FILE"
+
+  get: |
+    sharpdev kubectl get $_ARG1 $_ARG2
+
+  context: |
+    sharpdev kubectl config use-context $_ARG1
+
+  exec: |
+    sharpdev kubectl exec -n kube-system -it etcd-kwok-control-plane -- /bin/sh
+
+  chaos: |
+    i=1
+    while [ $i -le 10 ]; do
+      sharpdev create node
+      i=$((i + 1))
+    done
+
+    i=1
+    while [ $i -le 10 ]; do
+      sharpdev create pod
+      i=$((i + 1))
+    done
