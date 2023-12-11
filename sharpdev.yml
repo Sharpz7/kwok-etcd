@@ -83,3 +83,9 @@ scripts:
   chaos: |
     sharpdev chaos nodes
     sharpdev chaos pods
+
+  fill: |
+    while [ 1 ]; do dd if=/dev/urandom bs=1024 count=1024  | ETCDCTL_API=3 kwokctl etcdctl put key  || break; done
+
+  alarms: |
+    ETCDCTL_API=3 kwokctl etcdctl alarm list
