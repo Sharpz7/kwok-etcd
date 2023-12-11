@@ -10,6 +10,9 @@ scripts:
   cluster: |
     kwokctl create cluster --name=kwok$_ARG1
 
+  100kb_pod: |
+    bash scripts/pod.sh
+
   clusters: |
     sharpdev cluster
     sharpdev cluster 2
@@ -40,7 +43,7 @@ scripts:
 
     # Use a for loop to repeat for NAME2 to NAME8
     i=1
-    while [ $i -le 20 ]; do
+    while [ $i -le 1000 ]; do
       # Generating the first name
       NAME=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 10 | head -n 1)
       export NAME="n${NAME}1"
@@ -63,15 +66,20 @@ scripts:
   get: |
     kubectl get $_ARG1 $_ARG2
 
-  chaos: |
+  chaos_nodes: |
     i=1
     while [ $i -le 10 ]; do
       sharpdev create node
       i=$((i + 1))
     done
 
+  chaos_pods: |
     i=1
-    while [ $i -le 10 ]; do
+    while [ $i -le 20 ]; do
       sharpdev create pod
       i=$((i + 1))
     done
+
+  chaos: |
+    sharpdev chaos nodes
+    sharpdev chaos pods
