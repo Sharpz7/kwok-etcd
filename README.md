@@ -29,3 +29,9 @@ sharpdev fill
 # Spin up lots of Nodes and Pods
 sharpdev chaos
 ```
+
+# Findings
+
+- Running `sharpdev chaos_pod` until the cluster hit 5GB caused this error, and the database did not increase past 5GB "Error from server: error when creating "/tmp/tmp.G1HzpPAY9m": etcdserver: request timed out"
+
+- Filling the database manually, it goes past 8GB (https://photos.app.goo.gl/MwtMUyRoKBJYxaxJ9), and doesn't alarm?? It instead alarms at 8.6GB `sharpdev alarms`

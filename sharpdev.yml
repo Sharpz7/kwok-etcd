@@ -8,7 +8,7 @@ scripts:
     go install sigs.k8s.io/kwok/cmd/kwokctl@latest
 
   cluster: |
-    kwokctl create cluster --name=kwok$_ARG1
+    kwokctl create cluster --name=kwok$_ARG1 --disable-qps-limits
 
   100kb_pod: |
     bash scripts/pod.sh
