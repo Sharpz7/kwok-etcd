@@ -89,3 +89,6 @@ scripts:
 
   alarms: |
     ETCDCTL_API=3 kwokctl etcdctl alarm list
+
+  kwokconfig: |
+    kwokctl config view
