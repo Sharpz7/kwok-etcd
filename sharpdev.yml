@@ -7,6 +7,8 @@ scripts:
     go install sigs.k8s.io/kwok/cmd/kwok@latest
     go install sigs.k8s.io/kwok/cmd/kwokctl@latest
 
+    poetry install --no-root
+
   cluster: |
     kwokctl create cluster --name=kwok$_ARG1 --disable-qps-limits
 
@@ -26,13 +28,13 @@ scripts:
     sharpdev delete 2
     sharpdev delete 3
 
+  fml: |
+    mkdir -p ./fml
+    cd ./fml
+    poetry run fml server
+
   monitor: |
-    # Initialize a variable to store the previous output line count
-    while true; do
-      kwokctl etcdctl --write-out=table endpoint status
-      sleep 5
-      clear
-    done
+    poetry run python scripts/monitor.py
 
   context: |
     kubectl config use-context kwok-kwok$_ARG1
