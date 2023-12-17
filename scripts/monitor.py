@@ -4,6 +4,7 @@ import subprocess
 import logging
 import json
 import time
+import os
 
 
 mlflow.set_tracking_uri("http://localhost:5000")
@@ -11,7 +12,11 @@ mlflow.set_experiment("kwok-etcd")
 
 logging.basicConfig(level=logging.INFO)
 
-COMMAND = ['kwokctl', 'etcdctl', '--write-out=json', 'endpoint', 'status']
+# check env for ETCD_ONLY
+if os.environ.get("ETCD_ONLY"):
+    COMMAND = ['etcdctl', '--write-out=json', 'endpoint', 'status']
+else:
+    COMMAND = ['kwokctl', 'etcdctl', '--write-out=json', 'endpoint', 'status']
 
 def get_ram():
     return psutil.virtual_memory()[3]/1000000000

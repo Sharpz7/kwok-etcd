@@ -8,9 +8,16 @@ scripts:
     go install sigs.k8s.io/kwok/cmd/kwokctl@latest
 
     poetry install --no-root
+    sudo apt install etcd
 
   cluster: |
     kwokctl create cluster --name=kwok$_ARG1 --disable-qps-limits
+
+  etcd: |
+    sudo rm -rf ./default.etcd
+    # 10MB or 2048 * 5120
+    # 17,179,869,184 = 16GB
+    sudo etcd --max-request-bytes=10485760 --quota-backend-bytes=17179869184
 
   100kb_pod: |
     bash scripts/pod.sh
@@ -34,7 +41,10 @@ scripts:
     poetry run fml server
 
   monitor: |
-    poetry run python scripts/monitor.py
+    ETCDCTL_API=3 poetry run python scripts/monitor.py
+
+  monitor_etcd: |
+    ETCDCTL_API=3 ETCD_ONLY=true poetry run python scripts/monitor.py
 
   context: |
     kubectl config use-context kwok-kwok$_ARG1
@@ -88,6 +98,9 @@ scripts:
 
   fill: |
     while [ 1 ]; do dd if=/dev/urandom bs=1024 count=1024  | ETCDCTL_API=3 kwokctl etcdctl put key  || break; done
+
+  fill_etcd: |
+    while [ 1 ]; do dd if=/dev/urandom bs=1024 count=1024 | ETCDCTL_API=3 etcdctl put key  || break; done
 
   alarms: |
     ETCDCTL_API=3 kwokctl etcdctl alarm list
