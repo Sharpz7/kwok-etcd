@@ -14,7 +14,7 @@ logging.basicConfig(level=logging.INFO)
 
 # check env for ETCD_ONLY
 if os.environ.get("ETCD_ONLY"):
-    COMMAND = ['etcdctl', '--write-out=json', 'endpoint', 'status']
+    COMMAND = ['etcdctl', '--write-out=json', 'endpoint', 'status', '--endpoints', 'http://localhost:2378']
 else:
     COMMAND = ['kwokctl', 'etcdctl', '--write-out=json', 'endpoint', 'status']
 
